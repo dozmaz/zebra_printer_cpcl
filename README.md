@@ -15,7 +15,8 @@
 [//]: # ([![License: MIT]&#40;https://img.shields.io/badge/License-MIT-yellow.svg&#41;]&#40;https://opensource.org/licenses/MIT&#41;)
 
 This is a fork from https://github.com/Sameetdmr/zebra_printer 
-A Flutter package for Zebra printers. Uses Zebra Link-OS SDK for Bluetooth and Network connectivity, ZPL printing, and printer management. Supports Android platform.
+
+A Flutter package for Zebra printers. Uses Zebra Link-OS SDK for Bluetooth and Network connectivity, CPCL printing, ZPL printing, and printer management. Supports Android platform.
 
 ## Features
 
