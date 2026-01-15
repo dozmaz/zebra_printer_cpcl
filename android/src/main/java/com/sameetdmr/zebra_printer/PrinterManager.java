@@ -84,7 +84,7 @@ public class PrinterManager {
         switch (call.method) {
             // Discovery Methods
             case "startDiscovery":
-                final String discoveryType = call.argument("type");
+                final String discoveryType = call.<String>argument("type");
                 startDiscovery(discoveryType, result);
                 break;
                 
@@ -97,30 +97,30 @@ public class PrinterManager {
                 break;
                 
             case "unpairPrinter":
-                final String unpairAddress = call.argument("address");
+                final String unpairAddress = call.<String>argument("address");
                 unpairPrinter(unpairAddress, result);
                 break;
             
             // Connection Methods    
             case "connect":
-                final String connectAddress = call.argument("address");
+                final String connectAddress = call.<String>argument("address");
                 connectToPrinter(connectAddress, result);
                 break;
                 
             case "disconnect":
-                final String disconnectAddress = call.argument("address");
+                final String disconnectAddress = call.<String>argument("address");
                 disconnectFromPrinter(disconnectAddress, result);
                 break;
                 
             case "isConnected":
-                final String checkAddress = call.argument("address");
+                final String checkAddress = call.<String>argument("address");
                 result.success(isConnected(checkAddress));
                 break;
             
             // Printing Methods
             case "printLabel":
-                final String macAddress = call.argument("address");
-                final String zplData = call.argument("data");
+                final String macAddress = call.<String>argument("address");
+                final String zplData = call.<String>argument("data");
                 executorService.execute(() -> {
                     try {
                         sendZplToPrinter(macAddress, zplData);
@@ -133,9 +133,9 @@ public class PrinterManager {
                 break;
 
             case "printLabelCpcl":
-                final String macAddressCpcl = call.argument("address");
-                final String zplDataCpcl = call.argument("data");
-                final String charsetNameCpcl = call.argument("charsetName");
+                final String macAddressCpcl = call.<String>argument("address");
+                final String zplDataCpcl = call.<String>argument("data");
+                final String charsetNameCpcl = call.<String>argument("charsetName");
                 executorService.execute(() -> {
                     try {
                         sendCpclToPrinter(macAddressCpcl, zplDataCpcl, charsetNameCpcl);
@@ -148,7 +148,7 @@ public class PrinterManager {
                 break;
                 
             case "getPrinterInfo":
-                final String address = call.argument("address");
+                final String address = call.<String>argument("address");
                 executorService.execute(() -> {
                     try {
                         String info = getPrinterInfo(address);
@@ -160,7 +160,7 @@ public class PrinterManager {
                 break;
                 
             case "checkPrinterStatus":
-                final String statusAddress = call.argument("address");
+                final String statusAddress = call.<String>argument("address");
                 executorService.execute(() -> {
                     try {
                         Map<String, Object> status = checkPrinterStatus(statusAddress);

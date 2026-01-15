@@ -99,15 +99,15 @@ public class BluetoothManager {
                 stopDiscovery(result);
                 break;
             case "pairDevice":
-                String address = call.argument("address");
+                String address = call.<String>argument("address");
                 pairDevice(address, result);
                 break;
             case "unpairDevice":
-                String unpairAddress = call.argument("address");
+                String unpairAddress = call.<String>argument("address");
                 unpairDevice(unpairAddress, result);
                 break;
             case "connect":
-                String connectAddress = call.argument("address");
+                String connectAddress = call.<String>argument("address");
                 connect(connectAddress, result);
                 break;
             case "disconnect":
