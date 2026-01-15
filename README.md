@@ -391,7 +391,7 @@ class _PrinterScreenState extends State<PrinterScreen> {
 The `BluetoothManager` provides generic Android Bluetooth functionality for non-Zebra devices or when you need low-level Bluetooth control.
 
 ```dart
-import 'package:zebra_printer/zebra_printer.dart';
+import 'package:zebra_printer_cpcl/zebra_printer.dart';
 
 final bluetoothManager = BluetoothManager();
 
