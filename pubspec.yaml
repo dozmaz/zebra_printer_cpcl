@@ -1,6 +1,6 @@
 name: zebra_printer_cpcl
 description: Flutter management package for Zebra printers. Uses Zebra Link-OS SDK for Bluetooth & Network discovery, CPCL printing, ZPL printing, and printer management.
-version: 1.0.0
+version: 1.0.1
 homepage: https://github.com/dozmaz/zebra_printer_cpcl
 repository: https://github.com/dozmaz/zebra_printer_cpcl
 issue_tracker: https://github.com/dozmaz/zebra_printer_cpcl/issues

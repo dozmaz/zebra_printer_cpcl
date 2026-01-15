@@ -22,6 +22,7 @@ A Flutter package for Zebra printers. Uses Zebra Link-OS SDK for Bluetooth and N
 ### Zebra-Specific Features (via PrinterManager - Recommended)
 - 🔍 **Discover Zebra Printers** - Find printers via Bluetooth & Network using Zebra SDK
 - 🔗 **Persistent Connection** - Connect once, print multiple times with automatic connection reuse
+- 📄 **Print CPCL Labels** - Send CPCL commands directly with optimized connection handling
 - 📄 **Print ZPL Labels** - Send ZPL commands directly with optimized connection handling
 - 📊 **Check Printer Status** - Get real-time printer status (paper, head, pause) using active connection
 - ℹ️ **Get Printer Info** - Type-safe `PrinterInfo` model with device details, firmware, language
@@ -71,7 +72,7 @@ Add the package to your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  zebra_printer: latest_version
+  zebra_printer_cpcl: latest_version
 ```
 
 ### Android Setup
@@ -108,7 +109,7 @@ The `PrinterManager` uses Zebra Link-OS SDK and is the recommended approach for 
 #### Basic Setup
 
 ```dart
-import 'package:zebra_printer/zebra_printer.dart';
+import 'package:zebra_printer_cpcl/zebra_printer.dart';
 
 final printerManager = PrinterManager();
 ```
