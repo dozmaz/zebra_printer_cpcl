@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1 - Refactor argument retrieval in BluetoothManager and PrinterManager to use generics
+
+* Update README.md to reflect changes in BluetoothManager and PrinterManager
+
 ## 1.0.0
 
 * Initial release
