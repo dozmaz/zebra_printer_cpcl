@@ -16,6 +16,11 @@ public final class GeneratedPluginRegistrant {
   private static final String TAG = "GeneratedPluginRegistrant";
   public static void registerWith(@NonNull FlutterEngine flutterEngine) {
     try {
+      flutterEngine.getPlugins().add(new com.baseflow.permissionhandler.PermissionHandlerPlugin());
+    } catch (Exception e) {
+      Log.e(TAG, "Error registering plugin permission_handler_android, com.baseflow.permissionhandler.PermissionHandlerPlugin", e);
+    }
+    try {
       flutterEngine.getPlugins().add(new com.sameetdmr.zebra_printer.ZebraPrinterPlugin());
     } catch (Exception e) {
       Log.e(TAG, "Error registering plugin zebra_printer_cpcl, com.sameetdmr.zebra_printer.ZebraPrinterPlugin", e);

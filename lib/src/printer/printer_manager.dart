@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/services.dart';
 import '../models/printer_status.dart';
 import '../models/bluetooth_device.dart';
@@ -82,25 +84,25 @@ class PrinterManager {
   /// Returns a list of discovered Zebra printers
   Future<List<DiscoveredPrinter>> startDiscovery({String type = 'both'}) async {
     try {
-      print('[PrinterManager] startDiscovery called with type: $type');
+      log('[PrinterManager] startDiscovery called with type: $type');
       final result = await _channel.invokeMethod('startDiscovery', {'type': type});
 
       if (result == null) {
-        print('[PrinterManager] startDiscovery returned null');
+        log('[PrinterManager] startDiscovery returned null');
         return [];
       }
 
       final List<dynamic> printersList = result as List<dynamic>;
-      print('[PrinterManager] startDiscovery found ${printersList.length} printers');
+      log('[PrinterManager] startDiscovery found ${printersList.length} printers');
 
       final printers = printersList.map((e) => DiscoveredPrinter.fromMap(e as Map<dynamic, dynamic>)).toList();
 
       return printers;
     } on PlatformException catch (e) {
-      print('[PrinterManager] startDiscovery error: ${e.code} - ${e.message}');
+      log('[PrinterManager] startDiscovery error: ${e.code} - ${e.message}');
       throw Exception("Discovery Error (${e.code}): ${e.message}");
     } catch (e) {
-      print('[PrinterManager] startDiscovery unexpected error: $e');
+      log('[PrinterManager] startDiscovery unexpected error: $e');
       rethrow;
     }
   }
@@ -124,12 +126,12 @@ class PrinterManager {
   /// Returns true if connected successfully, false otherwise
   Future<bool> connect(String address) async {
     try {
-      print('[PrinterManager] connect called for address: $address');
+      log('[PrinterManager] connect called for address: $address');
       final result = await _channel.invokeMethod('connect', {'address': address});
-      print('[PrinterManager] connect result: $result');
+      log('[PrinterManager] connect result: $result');
       return result as bool? ?? false;
     } on PlatformException catch (e) {
-      print('[PrinterManager] connect error: ${e.code} - ${e.message}');
+      log('[PrinterManager] connect error: ${e.code} - ${e.message}');
       throw Exception("Connection Error (${e.code}): ${e.message}");
     }
   }
@@ -141,12 +143,12 @@ class PrinterManager {
   /// Returns true if disconnected successfully, false otherwise
   Future<bool> disconnect({String? address}) async {
     try {
-      print('[PrinterManager] disconnect called for address: $address');
+      log('[PrinterManager] disconnect called for address: $address');
       final result = await _channel.invokeMethod('disconnect', {'address': address});
-      print('[PrinterManager] disconnect result: $result');
+      log('[PrinterManager] disconnect result: $result');
       return result as bool? ?? false;
     } on PlatformException catch (e) {
-      print('[PrinterManager] disconnect error: ${e.code} - ${e.message}');
+      log('[PrinterManager] disconnect error: ${e.code} - ${e.message}');
       throw Exception("Disconnection Error (${e.code}): ${e.message}");
     }
   }
@@ -158,12 +160,12 @@ class PrinterManager {
   /// Returns true if connected, false otherwise
   Future<bool> isConnected({String? address}) async {
     try {
-      print('[PrinterManager] isConnected called for address: $address');
+      log('[PrinterManager] isConnected called for address: $address');
       final result = await _channel.invokeMethod('isConnected', {'address': address});
-      print('[PrinterManager] isConnected result: $result');
+      log('[PrinterManager] isConnected result: $result');
       return result as bool? ?? false;
     } on PlatformException catch (e) {
-      print('[PrinterManager] isConnected error: ${e.code} - ${e.message}');
+      log('[PrinterManager] isConnected error: ${e.code} - ${e.message}');
       throw Exception("IsConnected Error (${e.code}): ${e.message}");
     }
   }
@@ -174,12 +176,12 @@ class PrinterManager {
   /// Returns true if successful, throws exception otherwise
   Future<bool> unpairPrinter(String address) async {
     try {
-      print('[PrinterManager] unpairPrinter called for: $address');
+      log('[PrinterManager] unpairPrinter called for: $address');
       final result = await _channel.invokeMethod('unpairPrinter', {'address': address});
-      print('[PrinterManager] unpairPrinter successful');
+      log('[PrinterManager] unpairPrinter successful');
       return result as bool;
     } on PlatformException catch (e) {
-      print('[PrinterManager] unpairPrinter error: ${e.code} - ${e.message}');
+      log('[PrinterManager] unpairPrinter error: ${e.code} - ${e.message}');
       throw Exception("Unpair Printer Error (${e.code}): ${e.message}");
     }
   }
@@ -190,16 +192,16 @@ class PrinterManager {
   /// Returns a list of paired Bluetooth devices as BluetoothDevice objects
   Future<List<BluetoothDevice>> getPairedPrinters() async {
     try {
-      print('[PrinterManager] getPairedPrinters called');
+      log('[PrinterManager] getPairedPrinters called');
       final result = await _channel.invokeMethod('getPairedPrinters');
 
       if (result == null) {
-        print('[PrinterManager] getPairedPrinters returned null');
+        log('[PrinterManager] getPairedPrinters returned null');
         return [];
       }
 
       final List<dynamic> devicesList = result as List<dynamic>;
-      print('[PrinterManager] getPairedPrinters found ${devicesList.length} printers');
+      log('[PrinterManager] getPairedPrinters found ${devicesList.length} printers');
 
       // Map'i BluetoothDevice'a dönüştür
       final devices =
@@ -216,7 +218,7 @@ class PrinterManager {
 
       return devices;
     } on PlatformException catch (e) {
-      print('[PrinterManager] getPairedPrinters error: ${e.code} - ${e.message}');
+      log('[PrinterManager] getPairedPrinters error: ${e.code} - ${e.message}');
       throw Exception("Get Paired Printers Error (${e.code}): ${e.message}");
     }
   }
@@ -305,28 +307,28 @@ class PrinterManager {
   /// Returns PrinterInfo object with model, serial number, firmware, and language information
   /// Throws an error if failed
   Future<PrinterInfo> getPrinterInfo(String macAddress) async {
-    print('📱 getPrinterInfo called with address: $macAddress');
+    log('📱 getPrinterInfo called with address: $macAddress');
     
     if (macAddress.isEmpty) {
       throw Exception("MAC address cannot be empty");
     }
     
     try {
-      print('📱 Invoking native getPrinterInfo method...');
+      log('📱 Invoking native getPrinterInfo method...');
       final String result = await _channel.invokeMethod('getPrinterInfo', {'address': macAddress});
-      print('📱 Native method returned: $result');
+      log('📱 Native method returned: $result');
       
       final printerInfo = PrinterInfo.fromString(result);
-      print('📱 PrinterInfo parsed successfully: ${printerInfo.toCompactString()}');
+      log('📱 PrinterInfo parsed successfully: ${printerInfo.toCompactString()}');
       return printerInfo;
     } on PlatformException catch (e) {
-      print('❌ PlatformException in getPrinterInfo:');
-      print('   Code: ${e.code}');
-      print('   Message: ${e.message}');
-      print('   Details: ${e.details}');
+      log('❌ PlatformException in getPrinterInfo:');
+      log('   Code: ${e.code}');
+      log('   Message: ${e.message}');
+      log('   Details: ${e.details}');
       throw Exception("Printer Info Error (${e.code}): ${e.message}");
     } catch (e) {
-      print('❌ Unexpected error in getPrinterInfo: $e');
+      log('❌ Unexpected error in getPrinterInfo: $e');
       throw Exception("Printer Info Error: $e");
     }
   }

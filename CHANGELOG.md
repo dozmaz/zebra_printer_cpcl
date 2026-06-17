@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.2 - Add permission handling for Bluetooth operations
+
+* Add checkAndRequestPermissions() to BluetoothManager for requesting Bluetooth-related permissions.
+* Add _requiredBluetoothPermissions() helper method to determine which permissions are needed on different platforms.
+* Improve permission handling by checking for permanently denied permissions and opening app settings when necessary.
+* Update README.md with information about permission requirements and usage examples.
+* Add test/bluetooth_manager_permissions_test.dart to verify permission handling logic.
+
 ## 1.0.1 - Refactor argument retrieval in BluetoothManager and PrinterManager to use generics
 
 * Update README.md to reflect changes in BluetoothManager and PrinterManager

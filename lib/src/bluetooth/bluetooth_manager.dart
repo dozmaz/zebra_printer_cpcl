@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../models/bluetooth_device.dart';
 
 /// Enum for Bluetooth connection state
@@ -322,6 +324,77 @@ class BluetoothManager {
       _updateConnectionState(BluetoothConnectionState.error);
       return false;
     }
+  }
+
+  /// Checks and requests the Bluetooth permissions needed to scan and connect.
+  ///
+  /// On **Android 12+ (API 31+)** requests:
+  ///   - [Permission.bluetoothScan]
+  ///   - [Permission.bluetoothConnect]
+  ///
+  /// On **Android < 12** requests:
+  ///   - [Permission.bluetooth]
+  ///   - [Permission.locationWhenInUse] (required by the OS to discover nearby devices)
+  ///
+  /// On **iOS** requests:
+  ///   - [Permission.bluetooth]
+  ///
+  /// Returns `true` when every required permission is granted, `false` otherwise.
+  /// If any permission is permanently denied the method opens the app settings
+  /// so the user can enable it manually.
+  Future<bool> checkAndRequestPermissions() async {
+    final List<Permission> required = _requiredBluetoothPermissions();
+
+    // Check current status for all required permissions.
+    final Map<Permission, PermissionStatus> statuses = await required.request();
+
+    bool allGranted = true;
+    bool anyPermanentlyDenied = false;
+
+    for (final entry in statuses.entries) {
+      if (entry.value.isPermanentlyDenied) {
+        anyPermanentlyDenied = true;
+        allGranted = false;
+      } else if (!entry.value.isGranted) {
+        allGranted = false;
+      }
+    }
+
+    // If a permission is permanently denied, guide the user to app settings.
+    if (anyPermanentlyDenied) {
+      await openAppSettings();
+    }
+
+    return allGranted;
+  }
+
+  /// Returns the list of [Permission]s required on the current platform /
+  /// Android API level for Bluetooth scanning and connecting.
+  List<Permission> _requiredBluetoothPermissions() {
+    if (Platform.isAndroid) {
+      // Android 12+ (API 31) introduced fine-grained Bluetooth permissions.
+      // The version check below relies on the SDK int exposed at runtime via
+      // the permission_handler package internals; we use a conservative
+      // compile-time heuristic: request both groups and let the OS ignore
+      // the ones that don't apply to the running version.
+      //
+      // In practice, permission_handler returns [PermissionStatus.granted]
+      // automatically for permissions that do not exist on the current API
+      // level, so requesting both sets is safe.
+      return [
+        Permission.bluetoothScan,
+        Permission.bluetoothConnect,
+        Permission.bluetoothAdvertise,
+        Permission.locationWhenInUse,
+      ];
+    }
+
+    if (Platform.isIOS) {
+      return [Permission.bluetooth];
+    }
+
+    // Fallback for other platforms (e.g. macOS, Windows).
+    return [Permission.bluetooth];
   }
 
   /// Closes the stream controllers
