@@ -81,11 +81,13 @@ dependencies:
 Add the required permissions to your `android/app/src/main/AndroidManifest.xml` file:
 
 ```xml
-<!-- Bluetooth Permissions -->
-<uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
-<uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
-<uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-<uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />
+<!-- For Android 11 and below -->
+<uses-permission android:name="android.permission.BLUETOOTH"/>
+<uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+<!-- For Android 12 and above -->
+<uses-permission android:name="android.permission.BLUETOOTH_SCAN"/>
+<uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
+<uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE"/>
 
 <!-- Location Permissions (Required for Bluetooth discovery on Android 12+) -->
 <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />

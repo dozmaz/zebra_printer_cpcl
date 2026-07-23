@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.3
+
+* Fixed resolve Android 13+ Bluetooth permission issues and update build configuration
+
 ## 1.0.2 - Add permission handling for Bluetooth operations
 
 * Add checkAndRequestPermissions() to BluetoothManager for requesting Bluetooth-related permissions.
