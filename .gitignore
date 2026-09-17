@@ -5,3 +5,4 @@ analysis_options.yaml
 /android/.gradle/
 /example/.dart_tool/
 /example/android/.gradle/
+/example/.kotlin/
