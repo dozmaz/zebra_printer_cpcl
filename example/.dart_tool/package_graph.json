@@ -42,10 +42,11 @@
     },
     {
       "name": "zebra_printer_cpcl",
-      "version": "1.0.1",
+      "version": "1.0.3",
       "dependencies": [
         "flutter",
-        "permission_handler"
+        "permission_handler",
+        "plugin_platform_interface"
       ]
     },
     {
@@ -62,7 +63,7 @@
     },
     {
       "name": "lints",
-      "version": "6.0.0",
+      "version": "6.1.0",
       "dependencies": []
     },
     {
@@ -74,7 +75,7 @@
     },
     {
       "name": "meta",
-      "version": "1.18.0",
+      "version": "1.18.3",
       "dependencies": []
     },
     {
@@ -95,19 +96,19 @@
     },
     {
       "name": "vector_math",
-      "version": "2.2.0",
+      "version": "2.4.0",
       "dependencies": []
     },
     {
       "name": "stack_trace",
-      "version": "1.12.1",
+      "version": "1.12.2",
       "dependencies": [
         "path"
       ]
     },
     {
       "name": "clock",
-      "version": "1.1.2",
+      "version": "1.1.3",
       "dependencies": []
     },
     {
@@ -125,7 +126,7 @@
     },
     {
       "name": "matcher",
-      "version": "0.12.19",
+      "version": "0.12.20",
       "dependencies": [
         "async",
         "meta",
@@ -136,7 +137,7 @@
     },
     {
       "name": "test_api",
-      "version": "0.7.11",
+      "version": "0.7.12",
       "dependencies": [
         "async",
         "boolean_selector",
@@ -150,8 +151,15 @@
       ]
     },
     {
+      "name": "plugin_platform_interface",
+      "version": "2.1.8",
+      "dependencies": [
+        "meta"
+      ]
+    },
+    {
       "name": "permission_handler",
-      "version": "12.0.3",
+      "version": "13.0.1",
       "dependencies": [
         "flutter",
         "meta",
@@ -181,7 +189,7 @@
     },
     {
       "name": "async",
-      "version": "2.13.0",
+      "version": "2.13.1",
       "dependencies": [
         "collection",
         "meta"
@@ -221,7 +229,7 @@
     },
     {
       "name": "source_span",
-      "version": "1.10.1",
+      "version": "1.10.2",
       "dependencies": [
         "collection",
         "path",
@@ -238,7 +246,7 @@
     },
     {
       "name": "permission_handler_windows",
-      "version": "0.2.1",
+      "version": "0.2.2",
       "dependencies": [
         "flutter",
         "permission_handler_platform_interface"
@@ -246,7 +254,7 @@
     },
     {
       "name": "permission_handler_platform_interface",
-      "version": "4.3.0",
+      "version": "4.4.0",
       "dependencies": [
         "flutter",
         "meta",
@@ -254,29 +262,21 @@
       ]
     },
     {
+      "name": "permission_handler_android",
+      "version": "14.0.0",
+      "dependencies": [
+        "flutter",
+        "permission_handler_platform_interface"
+      ]
+    },
+    {
       "name": "vm_service",
-      "version": "15.0.2",
+      "version": "15.3.0",
       "dependencies": []
     },
     {
-      "name": "permission_handler_android",
-      "version": "13.0.1",
-      "dependencies": [
-        "flutter",
-        "permission_handler_platform_interface"
-      ]
-    },
-    {
-      "name": "permission_handler_apple",
-      "version": "9.4.10",
-      "dependencies": [
-        "flutter",
-        "permission_handler_platform_interface"
-      ]
-    },
-    {
       "name": "permission_handler_html",
-      "version": "0.1.3+5",
+      "version": "0.1.4+1",
       "dependencies": [
         "flutter",
         "flutter_web_plugins",
@@ -292,15 +292,26 @@
       ]
     },
     {
+      "name": "permission_handler_apple",
+      "version": "9.6.1",
+      "dependencies": [
+        "flutter",
+        "permission_handler_platform_interface",
+        "yaml"
+      ]
+    },
+    {
       "name": "web",
       "version": "1.1.1",
       "dependencies": []
     },
     {
-      "name": "plugin_platform_interface",
-      "version": "2.1.8",
+      "name": "yaml",
+      "version": "3.1.4",
       "dependencies": [
-        "meta"
+        "collection",
+        "source_span",
+        "string_scanner"
       ]
     }
   ],

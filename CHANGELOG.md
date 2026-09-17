@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.0.4
+
+### Breaking Changes
+* Migrated Android plugin implementation from Java to **Kotlin** (`ZebraPrinterPlugin.kt`)
+* Migrated Android build scripts from Groovy (`build.gradle`) to **Kotlin DSL** (`build.gradle.kts` / `settings.gradle.kts`)
+
+### Added
+* New `lib/zebra_printer_cpcl.dart` — public entrypoint barrel file for the plugin
+* New `lib/zebra_printer_cpcl_method_channel.dart` — `MethodChannel` implementation
+* New `lib/zebra_printer_cpcl_platform_interface.dart` — platform interface abstraction
+* Added `BLUETOOTH_ADVERTISE` permission to `AndroidManifest.xml` (required for Android 12+)
+* Added `package` attribute to `AndroidManifest.xml` (`com.sameetdmr.zebra_printer_cpcl`)
+* Added `plugin_platform_interface: ^2.1.8` dependency
+
+### Changed
+* Updated `permission_handler` from `^12.0.3` to `^13.0.2`
+* Updated `android.compileSdk` to **36**
+* Updated Jackson dependencies to `2.22.2` (`jackson-core`, `jackson-databind`, `jackson-annotations`)
+* Updated Gradle build toolchain — AGP `9.1.0`, Gradle wrapper `8.10.2`, Java `17`
+* Removed Apache Commons Lang3 dependency (no longer required)
+* Updated `minSdk` to **24**
+
+### Fixed
+* Fixed `AndroidManifest.xml` Bluetooth permission declarations — removed `maxSdkVersion` constraint on legacy permissions to ensure correct behavior across all supported API levels
+
 ## 1.0.3
 
 * Fixed resolve Android 13+ Bluetooth permission issues and update build configuration

@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
-   <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  package="com.sameetdmr.zebra_printer_cpcl">
     
     <!-- For Android 11 and below -->
     <uses-permission android:name="android.permission.BLUETOOTH"/>

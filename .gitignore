@@ -2,3 +2,4 @@
 /.dart_tool/
 /build/
 analysis_options.yaml
+/android/.gradle/
