@@ -1,4 +1,8 @@
+/build/
+/.idea/
 /android/.gradle/
 /example/.dart_tool/
 /example/android/.gradle/
 /example/.kotlin/
+/example/build/
+/example/.idea/

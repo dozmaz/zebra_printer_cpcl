@@ -6,3 +6,4 @@ analysis_options.yaml
 /example/.dart_tool/
 /example/android/.gradle/
 /example/.kotlin/
+/example/build/
