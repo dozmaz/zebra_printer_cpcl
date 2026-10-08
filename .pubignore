@@ -1,5 +1,6 @@
 /build/
 /.idea/
+/.dart_tool/
 /android/.gradle/
 /example/.dart_tool/
 /example/android/.gradle/

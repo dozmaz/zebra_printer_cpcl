@@ -1,6 +1,21 @@
 # Changelog
 
+## 1.0.5
 
+### Fixed
+* Fixed `SecurityException: Need android.permission.BLUETOOTH_SCAN permission` during Bluetooth discovery and connection on Android 12+ (Android 12 to Android 17).
+* Added pre-execution runtime permission checks and graceful `SecurityException` handling in native `PrinterManager` and `BluetoothManager`.
+* Added `Context.RECEIVER_EXPORTED` flag for `BroadcastReceiver` registrations on Android 14+ (API 33+).
+* Fixed `android.os.Build` import in native Android managers.
+
+### Added
+* Added `BluetoothPermissionHelper` (Dart & Java) for version-adaptive permission management compatible with Android 10 (API 29) through Android 17 (API 37+).
+  * Android 10 & 11: Requires `ACCESS_FINE_LOCATION` for Bluetooth discovery.
+  * Android 12 to 17: Requires runtime `BLUETOOTH_SCAN` and `BLUETOOTH_CONNECT`.
+* Added `checkAndRequestPermissions()` and `arePermissionsGranted()` methods to `PrinterManager`.
+* Added automatic permission verification guards in `PrinterManager.startDiscovery()`, `connect()`, and `getPairedPrinters()`.
+* Added `android:usesPermissionFlags="neverForLocation"` to `BLUETOOTH_SCAN` and `android:maxSdkVersion="30"` to legacy Bluetooth permissions in `AndroidManifest.xml`.
+* Added unit tests in `test/bluetooth_permission_helper_test.dart`.
 
 ## 1.0.4
 
