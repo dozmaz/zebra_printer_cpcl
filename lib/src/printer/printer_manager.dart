@@ -1,9 +1,11 @@
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:flutter/services.dart';
 import '../models/printer_status.dart';
 import '../models/bluetooth_device.dart';
 import '../models/printer_info.dart';
+import '../bluetooth/bluetooth_permission_helper.dart';
 
 /// Discovered Zebra Printer model
 class DiscoveredPrinter {
@@ -75,6 +77,24 @@ class PrinterManager {
     }
   }
 
+  // ==================== PERMISSION METHODS ====================
+
+  /// Checks and requests Bluetooth permissions compatible from Android 10 to Android 17+.
+  ///
+  /// Returns `true` if all required permissions are granted, `false` otherwise.
+  /// If any permission is permanently denied and [openSettingsIfDenied] is true,
+  /// opens app settings so the user can enable it manually.
+  Future<bool> checkAndRequestPermissions({bool openSettingsIfDenied = true}) async {
+    return BluetoothPermissionHelper.checkAndRequestPermissions(
+      openSettingsIfPermanentlyDenied: openSettingsIfDenied,
+    );
+  }
+
+  /// Checks whether required Bluetooth permissions are granted without prompting.
+  Future<bool> arePermissionsGranted() async {
+    return BluetoothPermissionHelper.arePermissionsGranted();
+  }
+
   // ==================== DISCOVERY METHODS ====================
 
   /// Starts discovering Zebra printers using Zebra Link-OS SDK
@@ -85,6 +105,15 @@ class PrinterManager {
   Future<List<DiscoveredPrinter>> startDiscovery({String type = 'both'}) async {
     try {
       log('[PrinterManager] startDiscovery called with type: $type');
+
+      // Ensure Bluetooth permissions on Android 10-17 before discovery
+      if (Platform.isAndroid && type != 'network') {
+        final bool granted = await checkAndRequestPermissions();
+        if (!granted) {
+          throw Exception("Bluetooth scan permissions not granted. Required: BLUETOOTH_SCAN (Android 12-17) or ACCESS_FINE_LOCATION (Android 10-11).");
+        }
+      }
+
       final result = await _channel.invokeMethod('startDiscovery', {'type': type});
 
       if (result == null) {
@@ -127,6 +156,15 @@ class PrinterManager {
   Future<bool> connect(String address) async {
     try {
       log('[PrinterManager] connect called for address: $address');
+
+      final bool isBluetooth = address.contains(':') && address.length == 17;
+      if (Platform.isAndroid && isBluetooth) {
+        final bool granted = await checkAndRequestPermissions();
+        if (!granted) {
+          throw Exception("Bluetooth connect permission not granted (BLUETOOTH_CONNECT required on Android 12-17).");
+        }
+      }
+
       final result = await _channel.invokeMethod('connect', {'address': address});
       log('[PrinterManager] connect result: $result');
       return result as bool? ?? false;
@@ -177,6 +215,14 @@ class PrinterManager {
   Future<bool> unpairPrinter(String address) async {
     try {
       log('[PrinterManager] unpairPrinter called for: $address');
+
+      if (Platform.isAndroid) {
+        final bool granted = await checkAndRequestPermissions();
+        if (!granted) {
+          throw Exception("Bluetooth permissions not granted.");
+        }
+      }
+
       final result = await _channel.invokeMethod('unpairPrinter', {'address': address});
       log('[PrinterManager] unpairPrinter successful');
       return result as bool;
@@ -193,6 +239,14 @@ class PrinterManager {
   Future<List<BluetoothDevice>> getPairedPrinters() async {
     try {
       log('[PrinterManager] getPairedPrinters called');
+
+      if (Platform.isAndroid) {
+        final bool granted = await checkAndRequestPermissions();
+        if (!granted) {
+          throw Exception("Bluetooth permissions not granted (BLUETOOTH_CONNECT required on Android 12-17).");
+        }
+      }
+
       final result = await _channel.invokeMethod('getPairedPrinters');
 
       if (result == null) {

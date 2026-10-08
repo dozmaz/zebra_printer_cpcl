@@ -3,6 +3,7 @@
 
 // Bluetooth
 export 'src/bluetooth/bluetooth_manager.dart';
+export 'src/bluetooth/bluetooth_permission_helper.dart';
 
 // Models
 export 'src/models/bluetooth_device.dart';

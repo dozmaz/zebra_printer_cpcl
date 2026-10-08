@@ -107,6 +107,23 @@ class _ZebraSDKTabState extends State<ZebraSDKTab> {
 
   Future<void> _discoverPrinters() async {
     setState(() {
+      _status = 'Checking permissions...';
+    });
+
+    // final bool permissionsGranted =
+    //     await widget.printerManager.checkAndRequestPermissions();
+    // if (!permissionsGranted) {
+    //   setState(() {
+    //     _status =
+    //         'Permission Denied!\n'
+    //         'Android 12-17: Requires "Nearby Devices" (BLUETOOTH_SCAN / BLUETOOTH_CONNECT)\n'
+    //         'Android 10-11: Requires Location permission (ACCESS_FINE_LOCATION)\n'
+    //         'Please grant required permissions in App Settings.';
+    //   });
+    //   return;
+    // }
+
+    setState(() {
       _status = 'Discovering Zebra printers...';
       _printers = [];
       _isDiscovering = true;
@@ -123,7 +140,7 @@ class _ZebraSDKTabState extends State<ZebraSDKTab> {
               '1. Bluetooth is ON\n'
               '2. Printer is powered ON\n'
               '3. Printer is in range\n'
-              '4. Location permission is granted';
+              '4. Bluetooth / Location permissions are granted';
           _isDiscovering = false;
         });
       }
@@ -138,6 +155,15 @@ class _ZebraSDKTabState extends State<ZebraSDKTab> {
   }
 
   Future<void> _getPairedPrinters() async {
+    // final bool permissionsGranted =
+    //     await widget.printerManager.checkAndRequestPermissions();
+    // if (!permissionsGranted) {
+    //   setState(() {
+    //     _status = 'Bluetooth permissions required to load paired devices.';
+    //   });
+    //   return;
+    // }
+
     try {
       final paired = await widget.printerManager.getPairedPrinters();
       setState(() {
@@ -467,6 +493,23 @@ class _BluetoothTabState extends State<BluetoothTab> {
 
   Future<void> _scanDevices() async {
     setState(() {
+      _status = 'Checking permissions...';
+    });
+
+    final bool permissionsGranted =
+        await widget.bluetoothManager.checkAndRequestPermissions();
+    if (!permissionsGranted) {
+      setState(() {
+        _status =
+            'Permission Denied!\n'
+            'Android 12-17: Requires "Nearby Devices" (BLUETOOTH_SCAN / BLUETOOTH_CONNECT)\n'
+            'Android 10-11: Requires Location permission (ACCESS_FINE_LOCATION)\n'
+            'Please grant required permissions in App Settings.';
+      });
+      return;
+    }
+
+    setState(() {
       _status = 'Scanning all Bluetooth devices...';
       _devices = [];
     });
@@ -498,6 +541,15 @@ class _BluetoothTabState extends State<BluetoothTab> {
   }
 
   Future<void> _connectToDevice(BluetoothDevice device) async {
+    final bool permissionsGranted =
+        await widget.bluetoothManager.checkAndRequestPermissions();
+    if (!permissionsGranted) {
+      setState(() {
+        _status = 'Bluetooth permissions required to connect.';
+      });
+      return;
+    }
+
     setState(() {
       _status = 'Connecting to ${device.name}...';
       _selectedDevice = device;

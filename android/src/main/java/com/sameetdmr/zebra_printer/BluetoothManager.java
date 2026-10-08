@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -86,6 +87,18 @@ public class BluetoothManager {
      */
     private void handleMethodCall(MethodCall call, MethodChannel.Result result) {
         switch (call.method) {
+            case "getAndroidSdkVersion":
+                result.success(android.os.Build.VERSION.SDK_INT);
+                break;
+            case "hasBluetoothPermissions":
+                result.success(BluetoothPermissionHelper.hasBluetoothPermissions(context));
+                break;
+            case "hasBluetoothScanPermission":
+                result.success(BluetoothPermissionHelper.hasBluetoothScanPermission(context));
+                break;
+            case "hasBluetoothConnectPermission":
+                result.success(BluetoothPermissionHelper.hasBluetoothConnectPermission(context));
+                break;
             case "isBluetoothEnabled":
                 result.success(isBluetoothEnabled());
                 break;
@@ -138,23 +151,32 @@ public class BluetoothManager {
             return devicesList;
         }
 
-        Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
-        if (pairedDevices.size() > 0) {
-            for (BluetoothDevice device : pairedDevices) {
-                Map<String, Object> deviceMap = new HashMap<>();
-                deviceMap.put("name", device.getName());
-                deviceMap.put("address", device.getAddress());
-                deviceMap.put("type", device.getType());
-                deviceMap.put("bondState", device.getBondState());
-                
-                // Bağlı cihaz ise isConnected true olsun
-                boolean isConnected = connectedDevice != null && 
-                                     device.getAddress().equals(connectedDevice.getAddress()) &&
-                                     connectionState == CONNECTION_STATE_CONNECTED;
-                deviceMap.put("isConnected", isConnected);
-                
-                devicesList.add(deviceMap);
+        if (!BluetoothPermissionHelper.hasBluetoothConnectPermission(context)) {
+            Log.e(TAG, "getBondedDevices: Missing BLUETOOTH_CONNECT permission");
+            return devicesList;
+        }
+
+        try {
+            Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
+            if (pairedDevices != null && pairedDevices.size() > 0) {
+                for (BluetoothDevice device : pairedDevices) {
+                    Map<String, Object> deviceMap = new HashMap<>();
+                    deviceMap.put("name", device.getName());
+                    deviceMap.put("address", device.getAddress());
+                    deviceMap.put("type", device.getType());
+                    deviceMap.put("bondState", device.getBondState());
+                    
+                    // Bağlı cihaz ise isConnected true olsun
+                    boolean isConnected = connectedDevice != null && 
+                                         device.getAddress().equals(connectedDevice.getAddress()) &&
+                                         connectionState == CONNECTION_STATE_CONNECTED;
+                    deviceMap.put("isConnected", isConnected);
+                    
+                    devicesList.add(deviceMap);
+                }
             }
+        } catch (SecurityException se) {
+            Log.e(TAG, "getBondedDevices SecurityException: " + se.getMessage(), se);
         }
 
         return devicesList;
@@ -171,6 +193,15 @@ public class BluetoothManager {
 
         if (bluetoothAdapter == null) {
             result.error("BLUETOOTH_UNAVAILABLE", "Bluetooth adapter bulunamadı", null);
+            return;
+        }
+
+        if (!BluetoothPermissionHelper.hasBluetoothScanPermission(context)) {
+            String errorMsg = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                ? "Need android.permission.BLUETOOTH_SCAN permission (Android 12-17 / API 31+)"
+                : "Need android.permission.ACCESS_FINE_LOCATION permission (Android 10-11 / API 29-30)";
+            Log.e(TAG, errorMsg);
+            result.error("PERMISSION_DENIED", errorMsg, null);
             return;
         }
 
@@ -226,15 +257,24 @@ public class BluetoothManager {
         filter.addAction(BluetoothDevice.ACTION_FOUND);
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         
-        // BroadcastReceiver'ı kaydet
-        context.registerReceiver(discoveryReceiver, filter);
+        // BroadcastReceiver'ı kaydet (Android 14+ / API 34+ compat)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.registerReceiver(discoveryReceiver, filter, Context.RECEIVER_EXPORTED);
+        } else {
+            context.registerReceiver(discoveryReceiver, filter);
+        }
 
         // Keşfi başlat
-        if (bluetoothAdapter.startDiscovery()) {
-            isDiscovering = true;
-            result.success(true);
-        } else {
-            result.error("DISCOVERY_FAILED", "Cihaz keşfi başlatılamadı", null);
+        try {
+            if (bluetoothAdapter.startDiscovery()) {
+                isDiscovering = true;
+                result.success(true);
+            } else {
+                result.error("DISCOVERY_FAILED", "Cihaz keşfi başlatılamadı", null);
+            }
+        } catch (SecurityException se) {
+            Log.e(TAG, "startDiscovery SecurityException: " + se.getMessage(), se);
+            result.error("PERMISSION_DENIED", "SecurityException: " + se.getMessage(), se.toString());
         }
     }
 
@@ -277,6 +317,15 @@ public class BluetoothManager {
             return;
         }
 
+        if (!BluetoothPermissionHelper.hasBluetoothConnectPermission(context)) {
+            String errorMsg = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                ? "Need android.permission.BLUETOOTH_CONNECT permission (Android 12-17 / API 31+)"
+                : "Need android.permission.BLUETOOTH permission";
+            Log.e(TAG, errorMsg);
+            result.error("PERMISSION_DENIED", errorMsg, null);
+            return;
+        }
+
         try {
             BluetoothDevice device = bluetoothAdapter.getRemoteDevice(address);
             if (device.getBondState() == BluetoothDevice.BOND_BONDED) {
@@ -287,6 +336,9 @@ public class BluetoothManager {
             // Eşleşme isteği gönder (Android 4.4+ sistemlerde kullanıcı onayı gerekebilir)
             device.getClass().getMethod("createBond").invoke(device);
             result.success(true);
+        } catch (SecurityException se) {
+            Log.e(TAG, "Pair permission error: " + se.getMessage(), se);
+            result.error("PERMISSION_DENIED", "SecurityException: " + se.getMessage(), null);
         } catch (Exception e) {
             Log.e(TAG, "Pair error: " + e.getMessage());
             result.error("PAIR_FAILED", "Cihazla eşleşme başarısız: " + e.getMessage(), null);
@@ -304,6 +356,15 @@ public class BluetoothManager {
             return;
         }
 
+        if (!BluetoothPermissionHelper.hasBluetoothConnectPermission(context)) {
+            String errorMsg = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                ? "Need android.permission.BLUETOOTH_CONNECT permission (Android 12-17 / API 31+)"
+                : "Need android.permission.BLUETOOTH permission";
+            Log.e(TAG, errorMsg);
+            result.error("PERMISSION_DENIED", errorMsg, null);
+            return;
+        }
+
         try {
             // Eğer bağlı cihaz ise önce bağlantıyı kes
             if (connectedDevice != null && connectedDevice.getAddress().equals(address)) {
@@ -313,6 +374,9 @@ public class BluetoothManager {
             BluetoothDevice device = bluetoothAdapter.getRemoteDevice(address);
             device.getClass().getMethod("removeBond").invoke(device);
             result.success(true);
+        } catch (SecurityException se) {
+            Log.e(TAG, "Unpair permission error: " + se.getMessage(), se);
+            result.error("PERMISSION_DENIED", "SecurityException: " + se.getMessage(), null);
         } catch (Exception e) {
             Log.e(TAG, "Unpair error: " + e.getMessage());
             result.error("UNPAIR_FAILED", "Cihazla eşleşme kaldırılamadı: " + e.getMessage(), null);
@@ -329,6 +393,15 @@ public class BluetoothManager {
             result.error("BLUETOOTH_UNAVAILABLE", "Bluetooth adapter bulunamadı", null);
             return;
         }
+
+        if (!BluetoothPermissionHelper.hasBluetoothConnectPermission(context)) {
+            String errorMsg = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                ? "Need android.permission.BLUETOOTH_CONNECT permission (Android 12-17 / API 31+)"
+                : "Need android.permission.BLUETOOTH permission";
+            Log.e(TAG, errorMsg);
+            result.error("PERMISSION_DENIED", errorMsg, null);
+            return;
+        }
         
         // Zaten bağlıysa veya bağlanıyorsa hata döndür
         if (connectionState == CONNECTION_STATE_CONNECTED || connectionState == CONNECTION_STATE_CONNECTING) {
@@ -337,8 +410,12 @@ public class BluetoothManager {
         }
         
         // Önce keşif işlemini durdur (bağlantıyı engelleyebilir)
-        if (bluetoothAdapter.isDiscovering()) {
-            bluetoothAdapter.cancelDiscovery();
+        try {
+            if (bluetoothAdapter.isDiscovering()) {
+                bluetoothAdapter.cancelDiscovery();
+            }
+        } catch (SecurityException se) {
+            Log.w(TAG, "cancelDiscovery SecurityException: " + se.getMessage());
         }
         
         // Bağlantı durumunu güncelle
@@ -361,6 +438,12 @@ public class BluetoothManager {
                 // Sonucu ana thread'de döndür
                 mainHandler.post(() -> result.success(true));
                 
+            } catch (SecurityException se) {
+                Log.e(TAG, "Connection permission error: " + se.getMessage(), se);
+                closeSocket();
+                connectedDevice = null;
+                updateConnectionState(CONNECTION_STATE_ERROR);
+                mainHandler.post(() -> result.error("PERMISSION_DENIED", "SecurityException: " + se.getMessage(), null));
             } catch (IOException e) {
                 Log.e(TAG, "Connection error: " + e.getMessage());
                 
@@ -477,8 +560,12 @@ public class BluetoothManager {
         filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
         filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
         
-        // BroadcastReceiver'ı kaydet
-        context.registerReceiver(connectionReceiver, filter);
+        // BroadcastReceiver'ı kaydet (Android 14+ / API 34+ compat)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.registerReceiver(connectionReceiver, filter, Context.RECEIVER_EXPORTED);
+        } else {
+            context.registerReceiver(connectionReceiver, filter);
+        }
     }
 
     /**

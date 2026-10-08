@@ -1,6 +1,7 @@
 package com.sameetdmr.zebra_printer;
 
 import android.content.Context;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -82,6 +83,23 @@ public class PrinterManager {
      */
     public void handleMethodCall(MethodCall call, @NonNull MethodChannel.Result result) {
         switch (call.method) {
+            // Permission & Version Methods
+            case "getAndroidSdkVersion":
+                result.success(android.os.Build.VERSION.SDK_INT);
+                break;
+
+            case "hasBluetoothPermissions":
+                result.success(BluetoothPermissionHelper.hasBluetoothPermissions(context));
+                break;
+
+            case "hasBluetoothScanPermission":
+                result.success(BluetoothPermissionHelper.hasBluetoothScanPermission(context));
+                break;
+
+            case "hasBluetoothConnectPermission":
+                result.success(BluetoothPermissionHelper.hasBluetoothConnectPermission(context));
+                break;
+
             // Discovery Methods
             case "startDiscovery":
                 final String discoveryType = call.<String>argument("type");
@@ -193,6 +211,18 @@ public class PrinterManager {
             Log.e(TAG, "Context is null! Cannot start discovery");
             result.error("NO_CONTEXT", "Context is null", null);
             return;
+        }
+
+        // Bluetooth discovery için izin kontrolü (Android 10 - 17)
+        if (!"network".equalsIgnoreCase(discoveryType)) {
+            if (!BluetoothPermissionHelper.hasBluetoothScanPermission(context)) {
+                String errorMsg = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
+                    ? "Need android.permission.BLUETOOTH_SCAN permission (Android 12-17 / API 31+)"
+                    : "Need android.permission.ACCESS_FINE_LOCATION permission (Android 10-11 / API 29-30)";
+                Log.e(TAG, errorMsg);
+                result.error("PERMISSION_DENIED", errorMsg, null);
+                return;
+            }
         }
         
         if (isDiscovering) {
@@ -324,6 +354,10 @@ public class PrinterManager {
                 }
                 Log.d(TAG, "Discovery method called successfully");
                 
+            } catch (SecurityException se) {
+                isDiscovering = false;
+                Log.e(TAG, "Bluetooth security permission error: " + se.getMessage(), se);
+                mainHandler.post(() -> result.error("PERMISSION_DENIED", "SecurityException: " + se.getMessage(), se.toString()));
             } catch (Exception e) {
                 isDiscovering = false;
                 Log.e(TAG, "Discovery exception: " + e.getMessage(), e);
@@ -360,6 +394,15 @@ public class PrinterManager {
         if (context == null) {
             Log.e(TAG, "Context is null! Cannot unpair device");
             result.error("NO_CONTEXT", "Context is null", null);
+            return;
+        }
+
+        if (!BluetoothPermissionHelper.hasBluetoothConnectPermission(context)) {
+            String errorMsg = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
+                ? "Need android.permission.BLUETOOTH_CONNECT permission (Android 12-17 / API 31+)"
+                : "Need android.permission.BLUETOOTH permission";
+            Log.e(TAG, errorMsg);
+            result.error("PERMISSION_DENIED", errorMsg, null);
             return;
         }
         
@@ -417,6 +460,15 @@ public class PrinterManager {
         if (context == null) {
             Log.e(TAG, "Context is null! Cannot get paired devices");
             result.error("NO_CONTEXT", "Context is null", null);
+            return;
+        }
+
+        if (!BluetoothPermissionHelper.hasBluetoothConnectPermission(context)) {
+            String errorMsg = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
+                ? "Need android.permission.BLUETOOTH_CONNECT permission (Android 12-17 / API 31+)"
+                : "Need android.permission.BLUETOOTH permission";
+            Log.e(TAG, errorMsg);
+            result.error("PERMISSION_DENIED", errorMsg, null);
             return;
         }
         
@@ -487,6 +539,17 @@ public class PrinterManager {
             return;
         }
         
+        // If Bluetooth address (MAC format), check Bluetooth connect permission
+        boolean isBluetooth = address.contains(":") && address.length() == 17;
+        if (isBluetooth && !BluetoothPermissionHelper.hasBluetoothConnectPermission(context)) {
+            String errorMsg = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
+                ? "Need android.permission.BLUETOOTH_CONNECT permission (Android 12-17 / API 31+)"
+                : "Need android.permission.BLUETOOTH permission";
+            Log.e(TAG, errorMsg);
+            result.error("PERMISSION_DENIED", errorMsg, null);
+            return;
+        }
+
         // Zaten bağlıysa önce kes
         if (activeConnection != null) {
             try {
@@ -528,6 +591,21 @@ public class PrinterManager {
                     }
                 });
                 
+            } catch (SecurityException se) {
+                Log.e(TAG, "Connection permission error: " + se.getMessage(), se);
+                activeConnection = null;
+                connectedAddress = null;
+                
+                mainHandler.post(() -> {
+                    result.error("PERMISSION_DENIED", "SecurityException: " + se.getMessage(), se.toString());
+                    if (methodChannel != null) {
+                        Map<String, Object> errorInfo = new HashMap<>();
+                        errorInfo.put("address", address);
+                        errorInfo.put("isConnected", false);
+                        errorInfo.put("error", "SecurityException: " + se.getMessage());
+                        methodChannel.invokeMethod("onConnectionStateChanged", errorInfo);
+                    }
+                });
             } catch (Exception e) {
                 Log.e(TAG, "Connection error: " + e.getMessage());
                 activeConnection = null;
